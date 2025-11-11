@@ -90,7 +90,7 @@ treeview:
     }
   }
 
-  pages.sort((a, b) => b.name.localeCompare(a.name));
+  pages.sort((a, b) => a.name.localeCompare(b.name));
 
   pages.forEach((page) => {
     page.name.split("/").reduce((parent, title, currentIndex, parts) => {
@@ -146,6 +146,35 @@ treeview:
       return node;
     }, root);
   });
+
+  // Recursively sort nodes: folders ascending, files descending
+  function sortNodes(nodes: TreeNode[]): void {
+    nodes.sort((a, b) => {
+      const aIsFolder = a.data.nodeType === "folder";
+      const bIsFolder = b.data.nodeType === "folder";
+      
+      // If both are folders or both are files, sort by title
+      if (aIsFolder && bIsFolder) {
+        // Folders: ascending order
+        return a.data.title.localeCompare(b.data.title);
+      } else if (!aIsFolder && !bIsFolder) {
+        // Files: descending order
+        return b.data.title.localeCompare(a.data.title);
+      } else {
+        // Folders come before files
+        return aIsFolder ? -1 : 1;
+      }
+    });
+    
+    // Recursively sort child nodes
+    for (const node of nodes) {
+      if (node.nodes.length > 0) {
+        sortNodes(node.nodes);
+      }
+    }
+  }
+
+  sortNodes(root.nodes);
 
   return {
     nodes: root.nodes,
