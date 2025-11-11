@@ -68,6 +68,16 @@ const treeViewConfigSchema = z.object({
   size: z.number().gt(0).optional().default(1),
 
   /**
+   * Enable auto mode switching based on screen width
+   */
+  autoMobileMode: z.boolean().optional().default(true),
+
+  /**
+   * Width threshold (in pixels) for mobile mode detection
+   */
+  mobileThreshold: z.number().gt(0).optional().default(768),
+
+  /**
    * Drag-and-drop options
    */
   dragAndDrop: z.object({

@@ -17,6 +17,21 @@ import { getPlugConfig } from "./config.ts";
 let currentPosition: Position | undefined;
 
 /**
+ * Determines the appropriate position based on screen width and configuration
+ */
+function getAdaptivePosition(config: TreeViewConfig): Position {
+  if (!config.autoMobileMode) {
+    return config.position;
+  }
+  
+  // In server environment, use configured position
+  const isMobile = typeof window !== "undefined" && 
+                   window.innerWidth <= config.mobileThreshold;
+  
+  return isMobile ? "modal" : config.position;
+}
+
+/**
  * Toggles the treeview and it's preferred state.
  */
 export async function toggleTree() {
@@ -62,11 +77,12 @@ export async function showTreeIfEnabled() {
  */
 export async function showTree() {
   const config = await getPlugConfig();
+  const adaptivePosition = getAdaptivePosition(config);
 
-  if (currentPosition && config.position !== currentPosition) {
+  if (currentPosition && adaptivePosition !== currentPosition) {
     // This can be caused if the position preference in SETTINGS was changed
-    // while the tree was visible. If we don't first hide the page tree,
-    // we'll end up with multiple trees visible.
+    // while the tree was visible, or if window size changed.
+    // If we don't first hide the page tree, we'll end up with multiple trees visible.
     await hideTree();
   }
 
@@ -106,7 +122,7 @@ export async function showTree() {
   };
 
   await editor.showPanel(
-    config.position,
+    adaptivePosition,
     config.size,
     `
       <link rel="stylesheet" href="/.client/main.css" />
@@ -135,9 +151,20 @@ export async function showTree() {
       ${sortableTreeJs}
       ${plugJs}
       initializeTreeViewPanel(${JSON.stringify(treeViewConfig)});
+      
+      // Auto mode switching on window resize
+      if (${config.autoMobileMode}) {
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+          clearTimeout(resizeTimeout);
+          resizeTimeout = setTimeout(() => {
+            syscall("system.invokeFunction", "treeview.show");
+          }, 300);
+        });
+      }
     `,
   );
 
   await setTreeViewEnabled(true);
-  currentPosition = config.position;
+  currentPosition = adaptivePosition;
 }
