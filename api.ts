@@ -90,7 +90,7 @@ treeview:
     }
   }
 
-  pages.sort((a, b) => a.name.localeCompare(b.name));
+  pages.sort((a, b) => b.name.localeCompare(a.name));
 
   pages.forEach((page) => {
     page.name.split("/").reduce((parent, title, currentIndex, parts) => {
