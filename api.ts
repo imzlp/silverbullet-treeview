@@ -100,9 +100,11 @@ treeview:
         if (isLeaf && !("created" in node.data)) {
           // The node was found but is currently identified as a "folder",
           // so we need to change it to a "page" type.
+          // Use the page's title attribute if it exists, otherwise use the file name part
+          const displayTitle = (page as any).title || title;
           node.data = {
             ...page,
-            title,
+            title: displayTitle,
             isCurrentPage: currentPage === page.name,
             nodeType: "page",
           };
@@ -112,10 +114,12 @@ treeview:
 
       if (isLeaf) {
         // We're at the last part of the page name, so this reprents the page itself.
+        // Use the page's title attribute if it exists, otherwise use the file name part
+        const displayTitle = (page as any).title || title;
         node = {
           data: {
             ...page,
-            title,
+            title: displayTitle,
             isCurrentPage: currentPage === page.name,
             nodeType: "page",
           },
