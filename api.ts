@@ -147,23 +147,41 @@ treeview:
     }, root);
   });
 
-  // Recursively sort nodes: folders ascending, files descending
+  // Recursively sort nodes: folders ascending, files by date descending
   function sortNodes(nodes: TreeNode[]): void {
     nodes.sort((a, b) => {
       const aIsFolder = a.data.nodeType === "folder";
       const bIsFolder = b.data.nodeType === "folder";
       
-      // If both are folders or both are files, sort by title
+      // If both are folders, sort by title ascending
       if (aIsFolder && bIsFolder) {
-        // Folders: ascending order
         return a.data.title.localeCompare(b.data.title);
-      } else if (!aIsFolder && !bIsFolder) {
-        // Files: descending order
+      } 
+      
+      // If both are files, sort by date descending, then by title
+      if (!aIsFolder && !bIsFolder) {
+        const aDate = (a.data as any).date;
+        const bDate = (b.data as any).date;
+        
+        // If both have date, sort by date descending
+        if (aDate && bDate) {
+          const aTime = new Date(aDate).getTime();
+          const bTime = new Date(bDate).getTime();
+          if (aTime !== bTime) {
+            return bTime - aTime; // Descending order (newer first)
+          }
+        }
+        
+        // If only one has date, put it first
+        if (aDate && !bDate) return -1;
+        if (!aDate && bDate) return 1;
+        
+        // If neither has date or dates are equal, sort by title descending
         return b.data.title.localeCompare(a.data.title);
-      } else {
-        // Folders come before files
-        return aIsFolder ? -1 : 1;
       }
+      
+      // Folders come before files
+      return aIsFolder ? -1 : 1;
     });
     
     // Recursively sort child nodes
